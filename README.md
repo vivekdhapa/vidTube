@@ -8,7 +8,8 @@ A complex backend project that is built with
 - mongoose
 - jwt
 - bcrypt
-and many more.
+---
+
 It is a complete video hosting website similar to YouTube with all the features like -
 - login
 - signup
