@@ -13,8 +13,6 @@ users [icon: user] {
   updatedAt Date
 }
    */
-
-
 import mongoose, {Schema} from "mongoose";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
@@ -69,10 +67,11 @@ const userSchema =new Schema(
     {timestamps: true}
 )
 
-userSchema.pre("save", async function (next){
-    if(!this.modified("password") )return next() //we dont want to encrypt password everytime but only when password is updated
-    this.password=bcrypt.hash(this.password,10) 
-    next()
+userSchema.pre("save", async function (){
+    //we dont want to encrypt password everytime but only when password is updated
+    if(!this.isModified("password") )return 
+    this.password=await bcrypt.hash(this.password,10); 
+    //next() - No next() needed for async functions!
 })
 //now we'll compare the encryped password with the user entered password
 
@@ -80,7 +79,7 @@ userSchema.methods.isPasswordCorrect=async function(password){
    return await bcrypt.compare(password,this.password)
 }
 
-userSchema.method.generateAccessToken= function (){
+userSchema.methods.generateAccessToken= function (){
     //short lived access token
     return jwt.sign({
 //stored users in db's info
@@ -93,7 +92,7 @@ userSchema.method.generateAccessToken= function (){
     { expiresIn:process.env.ACCESS_TOKEN_EXPIRY}
     );
 }
-userSchema.method.generateRefreshToken= function (){
+userSchema.methods.generateRefreshToken= function (){
     //long lived token
     return jwt.sign({
 //stored users in db's info
@@ -103,10 +102,4 @@ userSchema.method.generateRefreshToken= function (){
     { expiresIn:process.env.REFRESH_TOKEN_EXPIRY}
     );
 }
-
-
-
-
-
-
 export const User = mongoose.model("User",userSchema)

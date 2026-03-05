@@ -23,14 +23,17 @@ app.use(cookieParser())
 
 //import routes
 import heathcheckRouter from "./routes/healthcheck.routes.js"
-
+import userRouter from "./routes/user.routes.js"
+import { errorHandler } from "./middlewares/error.middleweares.js"
 
 
 //routes
 app.use("/api/v1/healthcheck",heathcheckRouter)
+app.use("/api/v1/users",userRouter)
 
 
-
+//error handler
+//app.use(errorHandler)
 
 
 export { app }
