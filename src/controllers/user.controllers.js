@@ -167,9 +167,31 @@ const loginUser= asyncHandler(async (req,res)=>{
 
 const logoutUser=asyncHandler(async (req,res)=>{
     await User.findByIdAndUpdate(
-        //need to come back 
+        req.user._id,
+        {
+            $set:{
+                refreshToken: undefined,
+            }
+        },
+        {new:true}
 
     )
+    const options={
+        httpOnly:true, //makes cookie non modifieable from the client side
+        secure:process.env.NODE_ENV==="production",
+        }
+
+    return res
+        .status(200)
+        .clearcookie("accessToken", options)
+        .clearcookie("refreshToken", options)
+        .json( new ApiResponse(
+            200,
+            {},
+            "User logged out successfully"
+            ));
+
+ //we need to set up the route that connects this middleware and controller together
 })
 
 
@@ -222,5 +244,5 @@ const refreshAccessToken = asyncHandler(async (req,res)=> {
 
 
 export {
-    registerUser,loginUser,refreshAccessToken
+    registerUser,loginUser,refreshAccessToken,logoutUser
 }
