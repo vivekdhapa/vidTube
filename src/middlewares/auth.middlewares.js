@@ -6,7 +6,7 @@ import {asyncHandler} from "../utils/asyncHandler.js"
 
 
 export const verifyJWT= asyncHandler(async(req,_,next)=>{ 
-    const token=req.cookie.accessToken|| req.header("Authorization")?.replace("Bearer ","")
+    const token=req.cookies.accessToken|| req.header("Authorization")?.replace("Bearer ","")
     if(!token){
         throw new ApiError(401,"Unauthorized")
     }
@@ -17,12 +17,12 @@ export const verifyJWT= asyncHandler(async(req,_,next)=>{
 
         if(!user){
         throw new ApiError(401,"Unauthorized")
-
+    }
+    
         req.user=user //user containing value (extracted)
         next() //trasfering the req and flow of control from middleware to controller
-    }
     } catch (error) {
-        throw new ApiError(401,error?.meassage || "invalid access token")
+        throw new ApiError(401,error?.message || "invalid access token")
     }
 
     //we need to set up the route that connects this middleware and controller together
