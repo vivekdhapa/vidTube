@@ -198,7 +198,7 @@ const logoutUser=asyncHandler(async (req,res)=>{
 
 //new fresh set of access token generation
 const refreshAccessToken = asyncHandler(async (req,res)=> {
-    const incomingRefreshToken =req.cookie.refreshToken || req.body.refreshToken //grabing the existing refeshTokens
+    const incomingRefreshToken =req.cookies.refreshToken || req.body.refreshToken //grabing the existing refeshTokens
 
     if(!incomingRefreshToken){
         throw new ApiError(401,"Refresh token is required")
@@ -234,9 +234,13 @@ const refreshAccessToken = asyncHandler(async (req,res)=> {
             "Acess token refreshed successfully"
             ));
 
-    } catch (error) {
-        throw new ApiError(500,"something went wrong while refreshing access token")
-    }
+    // } catch (error) {
+    //     throw new ApiError(500,"something went wrong while refreshing access token")
+    // }
+        } catch (error) {
+    console.log("REFRESH ERROR:", error);
+    throw new ApiError(500, error?.message || "Something went wrong while refreshing access token")
+}
 })
 
 
@@ -263,7 +267,7 @@ const getCurrentUser =asyncHandler(async(req,res)=>{
 
 const updateAccountDetails =asyncHandler(async(req,res)=>{
     const {fullname,email}=req.body
-    if(!fullname||email){
+    if(!fullname||!email){
         throw new ApiError(401,"fullname and email are required")
     }
     const user=await User.findByIdAndUpdate(
