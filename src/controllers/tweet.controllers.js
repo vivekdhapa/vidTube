@@ -146,6 +146,33 @@ const updateTweet = asyncHandler(async (req, res) => {
     //tweet must exist
     //only onwer can update
     //content cant be empty
+    const {tweetId}=req.params;
+    const {content}=req.body;
+
+    if(!isValidObjectId(tweetId)){
+        throw new ApiError(400,"invalid tweet id")
+    }
+    if(!content || content.trim()===""){
+        throw new ApiError(400,"content cannot he empty")
+    }
+    const updatedTweet=await Tweets.findByIdAndUpdate(
+        {
+            _id:tweetId,
+            owner:req.user?._id
+        },
+        {
+            $set:{content}
+        },
+        {
+            new:true
+        }
+    );
+    if(!updateTweet){
+        throw new ApiError(404,"tweet not found or unauthorized")
+    }
+     return res.status(200).json(
+        new ApiResponse(200, updatedTweet, "Tweet updated successfully")
+    );
 
 })
 

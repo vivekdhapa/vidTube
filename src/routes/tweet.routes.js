@@ -15,6 +15,6 @@ router.route("/create-tweet").post(createTweet);
 // router.route("/get-my-tweets").get(getUserTweets);
 router.route("/user-tweets/:username").get(getUserTweets);
 
-router.route("/:tweetId").patch(updateTweet).delete(deleteTweet);
+router.route("/update/:tweetId").patch(updateTweet);
 
 export default router
