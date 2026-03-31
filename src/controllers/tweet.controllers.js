@@ -4,6 +4,7 @@ import {ApiError} from "../utils/ApiError.js"
 import {ApiResponse} from "../utils/ApiResponse.js"
 import {asyncHandler} from "../utils/asyncHandler.js"
 import { Tweets } from "../models/tweet.models.js"
+import { updateAccountDetails } from "./user.controllers.js"
 
 const createTweet = asyncHandler(async (req, res) => {
     //content--->frontend 
@@ -33,11 +34,119 @@ const createTweet = asyncHandler(async (req, res) => {
 })  
 
 const getUserTweets = asyncHandler(async (req, res) => {
+ // approach 1:
+    // const { userId } = req.params;
 
-})
+    // if (!userId) {
+    //     throw new ApiError(400, "UserId is required");
+    // }
+
+    // const tweets = await Tweets.find({
+    //     owner: userId
+    // })
+    // .sort({ createdAt: -1 })
+    // .populate("owner", "username fullname avatar");
+
+    // return res.status(200).json(
+    //     new ApiResponse(200, tweets, "Tweets fetched successfully")
+    // );
+
+//approach 2 using aggregation pipeline
+            //getting userid from url
+            //checking userid's existence 
+            //matching if tweet.owner === userId  userid=123456(form url) Tweets.owner=123456(from db)
+            //nextpipeline extracts details of owners whose userid is matched (this returns an array)
+            //$unwind:"$ownerDetails" converts array into single object
+            //project and sort lifo
+    const {username} = req.params;
+    const user=await User.findOne({username});
+    if(!user){
+        throw new ApiError(400,"User not found");
+    }
+    
+    try {
+        const allTweets=await Tweets.aggregate([
+            {
+                $match:{
+                    owner:user._id,
+                    // owner:new mongoose.Types.ObjectId(userId)//mongodb stores _id as objectid not as string so we convert string to objectid
+                }
+            },{
+                $lookup:{
+                    from:"users",
+                    localField:"owner",
+                    foreignField:"_id",
+                    as:"ownerDetails"
+                }
+            },{
+                $unwind:"$ownerDetails"
+            },{
+                $project:{
+                    content:1,
+                    createdAt:1,
+                    "ownerDetails.username":1,
+                    "ownerDetails.fullname":1,
+                    "ownerDetails.avatar":1,
+    
+                }
+            },{
+                $sort:{
+                    createdAt:-1
+                }
+            }
+        ]);
+    
+        return res.status(200).json(new ApiResponse(200,allTweets,"Tweets fetched successfully"))
+    } catch (error) {
+        throw new ApiError(400,"error fetching tweets")
+    }
+});
+
+
+
+// const getMyTweets = asyncHandler(async (req, res) => {
+// try {
+//         const myTweets=await Tweets.aggregate([
+//             {
+//                 $match:{
+//                     owner: new mongoose.Types.ObjectId(req.user._id)
+//                 }
+//             },
+//             {
+//                 $lookup:{
+//                     from:"users",
+//                     localField:"owner",
+//                     foreignField:"_id",
+//                     as:"ownerDetails"
+//                 } 
+//             },
+//             {
+//                 $unwind:"$ownerDetails"
+//             },{
+//                 $project:{
+//                     content:1,
+//                     createdAt:1,
+//                     "ownerDetails.username":1,
+//                     "ownerDetails.fullname":1,
+//                     "ownerDetails.avatar":1,
+    
+//                 }
+//             },{
+//                 $sort:{createdAt:-1}
+//             }
+//         ])
+    
+//         return res.status(200).json(new ApiResponse(200,myTweets,"tweets fetched successfully"))
+// } catch (error) {
+//     throw new ApiError(400,"error fetching tweets")
+// }
+// });
 
 const updateTweet = asyncHandler(async (req, res) => {
-    //TODO: update tweet
+    //tweet must exist
+    //only onwer can update
+    //content cant be empty
+
 })
 
 const deleteTweet = asyncHandler(async (req, res) => {
