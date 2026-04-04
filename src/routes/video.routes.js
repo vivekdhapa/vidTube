@@ -21,6 +21,8 @@ router.route("/publish").post(upload.fields([
     }
 ]),publishAVideo);
 
+router.route("/:videoId").get(getVideoById);
+
 
 
 

@@ -84,6 +84,62 @@ const publishAVideo = asyncHandler(async (req, res) => {
 const getVideoById = asyncHandler(async (req, res) => {
     const { videoId } = req.params
     
+    if(!isValidObjectId(videoId)){
+        throw new ApiError(400,"invalid video id");
+    }
+    //incrementing view count
+    await Video.findByIdAndUpdate(
+        videoId,
+        {$inc: {views:1} },
+        {new : true}
+    );
+    const video=await Video.aggregate([
+        {
+            $match:{
+                _id:new mongoose.Types.ObjectId(videoId)
+            }
+        },{
+             $lookup:{
+                from:"users",
+                localField:"owner",
+                foreignField:"_id",
+                as:"ownerDetails",
+                pipeline:[
+                   { $project:{
+                        username:1,
+                        fullname:1,
+                        avatar:1
+                    }}
+                ]
+            }
+        },{
+            $addFields:{
+                ownerDetails:{$first:"$ownerDetails"}
+            }
+        },{
+            $project:{
+                title:1,
+                description:1,
+                videoFile:1,
+                thumbnail:1,
+                views:1,
+                duration:1,
+                createdAt:1,
+                ownerDetails:1
+            }
+        }
+        
+    ]);
+    if(!video|| video.length===0){
+        throw new ApiError(404,"video not found");
+    }
+
+    await User.findByIdAndUpdate(req.user._id,{
+        $addToSet: {watchHistory:videoId}        
+    })
+    console.log("added to watchHistory");
+    return res.status(200).json(new ApiResponse(200,video[0],"video fetched successfully"))
+
 })
 
 const getAllVideos = asyncHandler(async (req, res) => {
@@ -108,9 +164,9 @@ const togglePublishStatus = asyncHandler(async (req, res) => {
 })
 
 export {
-    getAllVideos,
     publishAVideo,
     getVideoById,
+    getAllVideos,
     updateVideo,
     deleteVideo,
     togglePublishStatus
