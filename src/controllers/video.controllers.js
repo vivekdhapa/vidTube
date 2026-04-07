@@ -295,20 +295,40 @@ const deleteVideo = asyncHandler(async (req, res) => {
     const { videoId } = req.params
     const userId=req.user._id
 
+    if (!mongoose.isValidObjectId(videoId)) {
+        throw new ApiError(400, "Invalid video id");
+    }
+
     //finding video
     const video= await Video.findById(videoId);
     if(!video){
-        throw new ApiError(400,"error in getting the video or video doesnt exist")
+        throw new ApiError(404,"video not found")
     }
     // allow deletion only when the current user is the owner of that video
-    if(video.owner.toString()=== userId.toString()){
-        // Delete all the likes associated with the video
-        await Like.deleteMany({ video: videoId });
-        //delete video
-        await video.findByIdAndDelete(videoId)
-    }else{
-        throw new ApiError(400,"you are not authorised to delete this video")
+    if(video.owner.toString() != userId.toString()){
+       throw new ApiError(400,"you are not authorised to delete this video")
     }
+
+    //delete from cloudinary
+    try {
+        if (video.videoFile) {
+            const videoPublicId = video.videoFile.split("/").pop().split(".")[0];
+            await deleteFromCloudinary(videoPublicId, "video");
+        }
+
+        if (video.thumbnail) {
+            const thumbnailPublicId = video.thumbnail.split("/").pop().split(".")[0];
+            await deleteFromCloudinary(thumbnailPublicId, "image");
+        }
+    } catch (error) {
+        console.log("Cloudinary deletion error:", error);
+    }
+    //delete from db
+    await Video.findByIdAndDelete(videoId);
+
+    return res.status(200).json(
+        new ApiResponse(200, {}, "Video deleted successfully")
+    );
 })
 
 const togglePublishStatus = asyncHandler(async (req, res) => {
