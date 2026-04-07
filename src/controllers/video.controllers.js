@@ -235,6 +235,58 @@ const getAllVideos = asyncHandler(async (req, res) => {
 })
 
 
+const getUserVideosByUsername = asyncHandler(async (req, res) => {
+    const { username } = req.params;
+
+    if (!username || username.trim() === "") {
+        throw new ApiError(400, "Username is required");
+    }
+
+    const videos = await Video.aggregate([
+        {
+            //  Join with users to match username
+            $lookup: {
+                from: "users",
+                localField: "owner",
+                foreignField: "_id",
+                as: "ownerDetails"
+            }
+        },
+        {
+            $unwind: "$ownerDetails"
+        },
+        {
+            // matching username with only published videos
+            $match: {
+                "ownerDetails.username": username.toLowerCase(),
+                isPublished: true
+            }
+        },
+        {
+            
+            $project: {
+                title: 1,
+                thumbnail: 1,
+                videoFile:1,
+                views: 1,
+                duration: 1,
+                createdAt: 1,
+                "ownerDetails.username": 1,
+                "ownerDetails.fullname": 1,
+                "ownerDetails.avatar": 1
+            }
+        },
+        {
+            $sort: { createdAt: -1 }
+        }
+    ]);
+
+    return res.status(200).json(
+        new ApiResponse(200, videos, "User videos fetched successfully")
+    );
+});
+
+
 const getMyVideos = asyncHandler(async (req, res) => {
 
     const userId = req.user._id;
@@ -420,6 +472,7 @@ export {
     getVideoById,
     getAllVideos,
     getMyVideos,
+    getUserVideosByUsername,
     updateVideo,
     deleteVideo,
     togglePublishStatus

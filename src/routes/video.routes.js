@@ -4,6 +4,7 @@ import  {
     getVideoById,
     getAllVideos,
     getMyVideos,
+    getUserVideosByUsername,
     updateVideo,
     deleteVideo,
     togglePublishStatus
@@ -24,6 +25,7 @@ router.route("/publish").post(upload.fields([
 
 router.route("/").get(getAllVideos);
 router.route("/my-videos").get(verifyJWT,getMyVideos);
+router.route("/:username").get(getUserVideosByUsername);
 router.route("/:videoId").get(getVideoById);
 router.route("/:videoId").patch(upload.fields([{name:"thumbnail",maxCount:1}]),updateVideo);
 router.route("/:videoId").delete(deleteVideo);
