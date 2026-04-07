@@ -235,6 +235,60 @@ const getAllVideos = asyncHandler(async (req, res) => {
 })
 
 
+const getMyVideos = asyncHandler(async (req, res) => {
+
+    const userId = req.user._id;
+
+    const videos = await Video.aggregate([
+        {
+            $match: {
+                owner: new mongoose.Types.ObjectId(userId)
+            }
+        },
+        {
+            $lookup: {
+                from: "users",
+                localField: "owner",
+                foreignField: "_id",
+                as: "ownerDetails",
+                pipeline: [
+                    {
+                        $project: {
+                            username: 1,
+                            fullname: 1,
+                            avatar: 1
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            $addFields: {
+                ownerDetails: { $first: "$ownerDetails" }
+            }
+        },
+        {
+            $sort: { createdAt: -1 }
+        },
+        {
+            $project: {
+                title: 1,
+                description: 1,
+                thumbnail: 1,
+                views: 1,
+                duration: 1,
+                isPublished: 1,
+                createdAt: 1,
+                ownerDetails: 1
+            }
+        }
+    ]);
+
+    return res.status(200).json(
+        new ApiResponse(200, videos, "My videos fetched successfully")
+    );
+});
+
 const updateVideo = asyncHandler(async (req, res) => {
     const { videoId } = req.params
     const { title, description }= req.body;
@@ -365,6 +419,7 @@ export {
     publishAVideo,
     getVideoById,
     getAllVideos,
+    getMyVideos,
     updateVideo,
     deleteVideo,
     togglePublishStatus
