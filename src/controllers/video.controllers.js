@@ -143,24 +143,146 @@ const getVideoById = asyncHandler(async (req, res) => {
 })
 
 const getAllVideos = asyncHandler(async (req, res) => {
-    const { page = 1, limit = 10, query, sortBy, sortType, userId } = req.query
-    //TODO: get all videos based on query, sort, pagination
+    //extract query params
+    let { page = 1, limit = 10, query, sortBy="createdAt", sortType="desc", userId } = req.query
+    //converting types(query params[strings]-->int)
+    page = Math.max(1, parseInt(page) || 1);
+    limit = Math.max(1, parseInt(limit) || 10);
+    //items to ignore before starting to return data
+    const skip=(page-1)*limit;
+
+    const allowedSortFields = ["createdAt", "views"];
+
+    if (!allowedSortFields.includes(sortBy)) {
+        sortBy = "createdAt";
+    }
+    
+    const sortOrder = sortType === "asc" ? 1 : -1;
+    //Match condition 
+    const match = {isPublished: true};
+    if (query) {
+        match.$or = [          //adding new condition to match object
+            { title: { $regex: query, $options: "i" } },
+            { description: { $regex: query, $options: "i" } }
+        ];
+        }
+
+    if (userId && mongoose.isValidObjectId(userId)) {
+        match.owner = new mongoose.Types.ObjectId(userId);
+        }
+
+    //finding videos using aggregation
+     const videos = await Video.aggregate([
+        { $match: match },
+
+        {
+            $lookup: {
+                from: "users",
+                localField: "owner",
+                foreignField: "_id",
+                as: "ownerDetails",
+                pipeline: [
+                    {
+                        $project: {
+                            username: 1,
+                            fullname: 1,
+                            avatar: 1
+                        }
+                    }
+                ]
+            }
+        },
+
+        {
+            $addFields: {
+                ownerDetails: { $first: "$ownerDetails" }
+            }
+        },
+
+        {
+            $sort: {
+                [sortBy]: sortOrder
+            }
+        },
+
+        { $skip: skip },
+        { $limit: limit },
+
+        {
+            $project: {
+                title: 1,
+                thumbnail: 1,
+                views: 1,
+                duration: 1,
+                createdAt: 1,
+                ownerDetails: 1
+            }
+        }
+    ]);
+
+    const totalVideos = await Video.countDocuments(match);
+
+    return res.status(200).json(
+        new ApiResponse(200, {
+            videos,
+            page,
+            limit,
+            totalVideos,
+            totalPages: Math.ceil(totalVideos / limit)
+        }, "Videos fetched successfully")
+    );
+
 })
 
 
 const updateVideo = asyncHandler(async (req, res) => {
     const { videoId } = req.params
-    //TODO: update video details like title, description, thumbnail
+    
 
 })
 
 const deleteVideo = asyncHandler(async (req, res) => {
     const { videoId } = req.params
-    //TODO: delete video
+    const userId=req.user._id
+
+    //finding video
+    const video= await Video.findById(videoId);
+    if(!video){
+        throw new ApiError(400,"error in getting the video or video doesnt exist")
+    }
+    // allow deletion only when the current user is the owner of that video
+    if(video.owner.toString()=== userId.toString()){
+        // Delete all the likes associated with the video
+        await Like.deleteMany({ video: videoId });
+        //delete video
+        await video.findByIdAndDelete(videoId)
+    }else{
+        throw new ApiError(400,"you are not authorised to delete this video")
+    }
 })
 
 const togglePublishStatus = asyncHandler(async (req, res) => {
-    const { videoId } = req.params
+   
+
+    const video = await Video.findById(videoId);
+    if (!video) {
+      throw new ApiError(400, "Error in getting the video");
+    }
+
+    if (video.owner.toString() !== req.user._id.toString()) {
+        throw new ApiError(
+        400,
+         "You are not authorised to change the status of this video"
+    );
+    }
+
+    //toggle the publish status
+    video.isPublished = !video.isPublished;
+    await video.save({ validateBeforeSave: false });
+
+    return res
+    .status(200)
+    .json(new ApiResponse(200, { video }, "Status updated successfully."));
 })
 
 export {
