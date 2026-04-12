@@ -5,7 +5,7 @@ import {ApiError} from "../utils/ApiError.js"
 import {ApiResponse} from "../utils/ApiResponse.js"
 import {asyncHandler} from "../utils/asyncHandler.js"
 import {uploadOnCloudinary,deleteFromCloudinary} from "../utils/cloudinary.js"
-
+import { Likes } from "../models/like.models.js"
 const publishAVideo = asyncHandler(async (req, res) => {
     const { title, description} = req.body;
     if(!title || title.trim()===""){
@@ -116,7 +116,30 @@ const getVideoById = asyncHandler(async (req, res) => {
             $addFields:{
                 ownerDetails:{$first:"$ownerDetails"}
             }
-        },{
+        },
+         {
+            $lookup: {
+                from: "likes",
+                localField: "_id",
+                foreignField: "video",
+                as: "likes"
+            }
+        },
+        {
+            $addFields: {
+                likeCount: { $size: "$likes" },
+
+                isLiked: req.user
+                    ? {
+                        $in: [
+                            new mongoose.Types.ObjectId(req.user._id),
+                            "$likes.likedBy"
+                        ]
+                    }
+                    : false
+            }
+        },
+        {
             $project:{
                 title:1,
                 description:1,
@@ -125,7 +148,9 @@ const getVideoById = asyncHandler(async (req, res) => {
                 views:1,
                 duration:1,
                 createdAt:1,
-                ownerDetails:1
+                ownerDetails:1,
+                likeCount: 1,
+                isLiked: 1
             }
         }
         
@@ -198,6 +223,26 @@ const getAllVideos = asyncHandler(async (req, res) => {
                 ownerDetails: { $first: "$ownerDetails" }
             }
         },
+        {
+            $lookup: {
+                from: "likes",
+                localField: "_id",
+                foreignField: "video",
+                as: "likes"
+            }
+        },
+        {
+            $addFields: {
+                likeCount: { $size: "$likes" },
+
+                isLiked: {
+                $in: [
+                new mongoose.Types.ObjectId(req.user._id),
+                "$likes.likedBy"
+                ]
+                }   
+            }
+        },
 
         {
             $sort: {
@@ -215,7 +260,9 @@ const getAllVideos = asyncHandler(async (req, res) => {
                 views: 1,
                 duration: 1,
                 createdAt: 1,
-                ownerDetails: 1
+                ownerDetails: 1,
+                likeCount:1,
+                isLiked:1,
             }
         }
     ]);
