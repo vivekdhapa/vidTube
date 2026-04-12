@@ -97,8 +97,42 @@ const toggleTweetLike = asyncHandler(async (req, res) => {
 });
 
 const getLikedVideos = asyncHandler(async (req, res) => {
-    //TODO: get all liked videos
-})
+    const likedVideos = await Likes.aggregate([
+        {
+            $match: {
+                likedBy: new mongoose.Types.ObjectId(req.user._id),
+                video: { $ne: null }
+            }
+        },
+        {
+            $lookup: {
+                from: "videos",
+                localField: "video",
+                foreignField: "_id",
+                as: "videoDetails",
+                pipeline: [
+                    {
+                        $project: {
+                            title: 1,
+                            thumbnail: 1,
+                            views: 1,
+                            createdAt: 1
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            $addFields: {
+                videoDetails: { $first: "$videoDetails" }
+            }
+        }
+    ]);
+
+    return res.status(200).json(
+        new ApiResponse(200, likedVideos, "Liked videos fetched successfully")
+    );
+});
 
 export {
     toggleCommentLike,
