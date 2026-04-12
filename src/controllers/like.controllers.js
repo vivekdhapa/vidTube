@@ -67,10 +67,34 @@ const toggleCommentLike = asyncHandler(async (req, res) => {
 });
 
 const toggleTweetLike = asyncHandler(async (req, res) => {
-    const {tweetId} = req.params
-    //TODO: toggle like on tweet
-}
-)
+    const { tweetId } = req.params;
+
+    if (!mongoose.isValidObjectId(tweetId)) {
+        throw new ApiError(400, "Invalid tweet id");
+    }
+
+    const existingLike = await Likes.findOne({
+        tweet: tweetId,
+        likedBy: req.user._id
+    });
+
+    if (existingLike) {
+        await Likes.findByIdAndDelete(existingLike._id);
+
+        return res.status(200).json(
+            new ApiResponse(200, {}, "Tweet unliked")
+        );
+    }
+
+    await Likes.create({
+        tweet: tweetId,
+        likedBy: req.user._id
+    });
+
+    return res.status(200).json(
+        new ApiResponse(200, {}, "Tweet liked")
+    );
+});
 
 const getLikedVideos = asyncHandler(async (req, res) => {
     //TODO: get all liked videos
