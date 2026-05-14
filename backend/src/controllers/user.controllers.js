@@ -106,7 +106,7 @@ const registerUser=asyncHandler(async (req,res)=>{
         }
         return res
         .status(201)
-        .json( new ApiResponse(200, createdUser),"user registered successfully")
+        .json( new ApiResponse(201, createdUser, "user registered successfully"))
     } catch (error) {
         console.log("user creation failed",error);
         //if user is not created delete those avatar and coverimages from cloudiinary
@@ -328,7 +328,7 @@ const getUserChannelProfile=asyncHandler(async (req,res)=>{
            },
            {
             $lookup:{
-                from:"Subscription",
+                from:"subscriptions",
                 localField: "_id",
                 foreignField:"channel",
                 as:"subscribers"
@@ -336,7 +336,7 @@ const getUserChannelProfile=asyncHandler(async (req,res)=>{
            },
            {
             $lookup:{
-                from:"Subscription",
+                from:"subscriptions",
                 localField:"_id",
                 foreignField:"subscriber",
                 as:"subscribedTo"

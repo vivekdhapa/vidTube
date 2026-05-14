@@ -40,7 +40,7 @@ app.use("/api/v1/likes",likeRouter)
 app.use("/api/v1/subscription",subscriptionRouter)
 
 //error handler
-//app.use(errorHandler)
+app.use(errorHandler)
 
 
 export { app }

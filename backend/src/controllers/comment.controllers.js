@@ -100,6 +100,35 @@ const getVideoComments = asyncHandler(async (req, res) => {
                 ownerDetails: { $first: "$ownerDetails" }
             }
         },
+        {
+            $lookup: {
+                from: "likes",
+                localField: "_id",
+                foreignField: "comment",
+                as: "likes"
+            }
+        },
+        {
+            $addFields: {
+                likeCount: { $size: "$likes" },
+                isLiked: {
+                    $cond: {
+                        if: { $in: [req.user?._id, "$likes.likedBy"] },
+                        then: true,
+                        else: false
+                    }
+                }
+            }
+        },
+        {
+            $project: {
+                content: 1,
+                createdAt: 1,
+                ownerDetails: 1,
+                likeCount: 1,
+                isLiked: 1
+            }
+        },
 
         // sorting of comments
         {
@@ -108,14 +137,7 @@ const getVideoComments = asyncHandler(async (req, res) => {
 
         // adding pagination
         { $skip: skip },
-        { $limit: limit },
-        {
-            $project: {
-                content: 1,
-                createdAt: 1,
-                ownerDetails: 1
-            }
-        }
+        { $limit: limit }
     ]);
 
     // counting of comments
