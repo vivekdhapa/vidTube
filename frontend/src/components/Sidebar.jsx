@@ -1,7 +1,12 @@
 import { NavLink } from 'react-router-dom';
-import { House, Clock, Heart, Video, Upload, Settings, Feather, Globe, Users } from 'lucide-react';
+import { House, Clock, Heart, Video, Upload, Settings, Feather, Globe, Users, LogIn, UserPlus } from 'lucide-react';
+import useAuthStore from '../store/authStore';
 
-const navItems = [
+const publicItems = [
+  { to: '/', icon: House, label: 'Home' },
+];
+
+const authItems = [
   { to: '/', icon: House, label: 'Home' },
   { to: '/history', icon: Clock, label: 'History' },
   { to: '/liked-videos', icon: Heart, label: 'Liked Videos' },
@@ -13,7 +18,15 @@ const navItems = [
   { to: '/settings', icon: Settings, label: 'Settings' },
 ];
 
+const guestActions = [
+  { to: '/login', icon: LogIn, label: 'Sign In' },
+  { to: '/register', icon: UserPlus, label: 'Create Account' },
+];
+
 function Sidebar({ isOpen, onClose }) {
+  const { isAuthenticated } = useAuthStore();
+  const navItems = isAuthenticated ? authItems : publicItems;
+
   return (
     <>
       {/* Mobile Backdrop */}
@@ -63,6 +76,24 @@ function Sidebar({ isOpen, onClose }) {
               )}
             </NavLink>
           ))}
+
+          {/* Guest actions — sign in / create account */}
+          {!isAuthenticated && (
+            <>
+              <div className="h-px bg-[rgba(255,255,255,0.06)] mx-4 my-3" />
+              {guestActions.map(({ to, icon: Icon, label }) => (
+                <NavLink
+                  key={to}
+                  to={to}
+                  onClick={onClose}
+                  className="flex items-center gap-3 px-4 py-2.5 rounded-[10px] mx-2 transition-all duration-200 group text-[#A1A1AA] hover:bg-[rgba(255,255,255,0.04)] hover:text-[#F4F4F5]"
+                >
+                  <Icon size={20} className="text-[#A1A1AA] group-hover:text-[#F4F4F5] transition-colors" />
+                  <span className="text-sm font-['Inter'] font-medium">{label}</span>
+                </NavLink>
+              ))}
+            </>
+          )}
         </nav>
       </aside>
     </>

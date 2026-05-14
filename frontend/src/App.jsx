@@ -81,25 +81,31 @@ function App() {
         <Route
           path="/watch/:videoId"
           element={
-            <MainLayout>
-              <Watch />
-            </MainLayout>
+            <ProtectedRoute>
+              <MainLayout>
+                <Watch />
+              </MainLayout>
+            </ProtectedRoute>
           }
         />
         <Route
           path="/channel/:username"
           element={
-            <MainLayout>
-              <Channel />
-            </MainLayout>
+            <ProtectedRoute>
+              <MainLayout>
+                <Channel />
+              </MainLayout>
+            </ProtectedRoute>
           }
         />
         <Route
           path="/community"
           element={
-            <MainLayout>
-              <Community />
-            </MainLayout>
+            <ProtectedRoute>
+              <MainLayout>
+                <Community />
+              </MainLayout>
+            </ProtectedRoute>
           }
         />
         <Route

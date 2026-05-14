@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Loader2 } from 'lucide-react';
 import api from '../api/axios';
 import useAuthStore from '../store/authStore';
@@ -7,6 +7,11 @@ function SubscribeButton({ channelId, initialSubscribed = false, onToggle }) {
   const { isAuthenticated } = useAuthStore();
   const [isSubscribed, setIsSubscribed] = useState(initialSubscribed);
   const [loading, setLoading] = useState(false);
+
+  // Sync internal state when the parent's async fetch resolves
+  useEffect(() => {
+    setIsSubscribed(initialSubscribed);
+  }, [initialSubscribed]);
 
   const handleToggle = async (e) => {
     e.preventDefault();

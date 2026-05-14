@@ -21,12 +21,12 @@ api.interceptors.response.use(
         );
         return api(original);
       } catch {
-        // Refresh failed — clear auth state then redirect to login
+        // Refresh failed — clear auth state (but don't redirect, let callers handle it)
         try {
           const { default: useAuthStore } = await import('../store/authStore');
           useAuthStore.getState().logout();
         } catch (_) {}
-        window.location.href = '/login';
+        return Promise.reject(error);
       }
     }
     return Promise.reject(error);

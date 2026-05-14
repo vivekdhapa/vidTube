@@ -1,10 +1,95 @@
 import { useState, useEffect } from 'react';
-import { useSearchParams } from 'react-router-dom';
-import { VideoOff, Loader2 } from 'lucide-react';
+import { useSearchParams, Link } from 'react-router-dom';
+import { VideoOff, Loader2, Play, Upload, Users, MessageCircle, ThumbsUp, Zap } from 'lucide-react';
 import api from '../api/axios';
+import useAuthStore from '../store/authStore';
 import VideoCard from '../components/VideoCard';
 
+/* ───────────────────────────────────────────────── *
+ *  Hero / Landing Page for unauthenticated visitors *
+ * ───────────────────────────────────────────────── */
+function HeroLanding() {
+  const features = [
+    { icon: Play, title: 'Watch Videos', desc: 'Stream high-quality content from creators worldwide' },
+    { icon: Upload, title: 'Upload & Share', desc: 'Publish your own videos with custom thumbnails' },
+    { icon: Users, title: 'Build Community', desc: 'Subscribe to channels and follow your favorites' },
+    { icon: MessageCircle, title: 'Engage', desc: 'Comment, like, and interact with the community' },
+    { icon: ThumbsUp, title: 'Curate', desc: 'Build your collection of liked videos' },
+    { icon: Zap, title: 'Discover', desc: 'Explore trending and latest content across the platform' },
+  ];
+
+  return (
+    <div className="flex flex-col items-center justify-center min-h-[calc(100vh-120px)] px-4 relative overflow-hidden">
+      
+      {/* Ambient background glows */}
+      <div className="absolute top-1/4 left-1/4 w-[400px] h-[400px] bg-[rgba(99,102,241,0.08)] rounded-full blur-[120px] pointer-events-none" />
+      <div className="absolute bottom-1/4 right-1/4 w-[300px] h-[300px] bg-[rgba(99,102,241,0.05)] rounded-full blur-[100px] pointer-events-none" />
+
+      {/* Hero Content */}
+      <div className="relative z-10 text-center max-w-2xl mx-auto mb-16">
+        {/* Logo mark */}
+        <div className="inline-flex items-center justify-center w-20 h-20 rounded-3xl bg-[rgba(99,102,241,0.1)] border border-[rgba(99,102,241,0.2)] mb-8 backdrop-blur-md">
+          <Play size={36} className="text-[#6366F1] fill-[#6366F1]" />
+        </div>
+
+        <h1 className="font-['Outfit'] text-5xl md:text-6xl font-semibold text-[#F4F4F5] leading-tight tracking-tight mb-4">
+          Your Stage.{' '}
+          <span className="bg-gradient-to-r from-[#6366F1] to-[#818CF8] bg-clip-text text-transparent">
+            Your Story.
+          </span>
+        </h1>
+
+        <p className="text-[#A1A1AA] text-lg md:text-xl font-['Inter'] max-w-lg mx-auto mb-10 leading-relaxed">
+          A modern video platform where creators share, connect, and inspire. 
+          Sign in to start exploring.
+        </p>
+
+        <div className="flex items-center justify-center gap-4">
+          <Link
+            to="/login"
+            className="px-8 py-3 rounded-full bg-[#6366F1] hover:bg-[#4F46E5] text-white text-sm font-semibold transition-all hover:shadow-[0_0_30px_rgba(99,102,241,0.3)] active:scale-[0.97]"
+          >
+            Sign In
+          </Link>
+          <Link
+            to="/register"
+            className="px-8 py-3 rounded-full border border-[rgba(255,255,255,0.1)] text-[#F4F4F5] text-sm font-semibold hover:bg-[rgba(255,255,255,0.05)] transition-all"
+          >
+            Create Account
+          </Link>
+        </div>
+      </div>
+
+      {/* Feature Cards Grid */}
+      <div className="relative z-10 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 max-w-4xl w-full">
+        {features.map(({ icon: Icon, title, desc }, idx) => (
+          <div
+            key={title}
+            className="bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.06)] rounded-2xl p-5 backdrop-blur-md hover:bg-[rgba(255,255,255,0.05)] hover:border-[rgba(255,255,255,0.1)] transition-all duration-300 group"
+            style={{ animationDelay: `${idx * 80}ms` }}
+          >
+            <div className="w-10 h-10 rounded-xl bg-[rgba(99,102,241,0.1)] border border-[rgba(99,102,241,0.15)] flex items-center justify-center mb-3 group-hover:bg-[rgba(99,102,241,0.15)] transition-colors">
+              <Icon size={20} className="text-[#6366F1]" />
+            </div>
+            <h3 className="text-[#F4F4F5] text-[15px] font-semibold font-['Outfit'] mb-1">{title}</h3>
+            <p className="text-[#52525B] text-[13px] font-['Inter'] leading-relaxed">{desc}</p>
+          </div>
+        ))}
+      </div>
+
+      {/* Bottom tagline */}
+      <p className="relative z-10 mt-12 text-[#52525B] text-xs font-['Inter'] tracking-wide">
+        Free & open-source · Built with React & Node.js
+      </p>
+    </div>
+  );
+}
+
+/* ───────────────────────── *
+ *  Authenticated Home Feed  *
+ * ───────────────────────── */
 function Home() {
+  const { isAuthenticated } = useAuthStore();
   const [searchParams] = useSearchParams();
   const searchQuery = searchParams.get('query') || '';
 
@@ -45,10 +130,16 @@ function Home() {
   };
 
   useEffect(() => {
+    if (!isAuthenticated) return; // Don't fetch if not logged in
     setPage(1);
     fetchVideos(1, sortBy, false, searchQuery);
-  }, [sortBy, searchQuery]);
+  }, [sortBy, searchQuery, isAuthenticated]);
 
+
+  // Show hero landing for unauthenticated visitors
+  if (!isAuthenticated) {
+    return <HeroLanding />;
+  }
 
   const handleLoadMore = () => {
     if (page < totalPages) {
