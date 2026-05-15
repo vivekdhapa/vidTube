@@ -93,6 +93,11 @@ function Home() {
   const [searchParams] = useSearchParams();
   const searchQuery = searchParams.get('query') || '';
 
+  useEffect(() => {
+    console.log('ENV VAR:', import.meta.env.VITE_API_BASE_URL)
+    console.log('All env vars:', import.meta.env)
+  }, [])
+
   const [videos, setVideos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
@@ -122,6 +127,7 @@ function Home() {
       setTotalPages(total);
       
     } catch (err) {
+      console.error('Fetch videos error:', err);
       setError(err.response?.data?.message || 'Failed to fetch videos');
     } finally {
       setLoading(false);
