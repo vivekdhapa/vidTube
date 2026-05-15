@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: 'http://localhost:8000/api/v1',
+  baseURL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api/v1',
   withCredentials: true,
   timeout: 10000, // 10 s — never hang indefinitely
 });
@@ -15,7 +15,7 @@ api.interceptors.response.use(
       original._retry = true;
       try {
         await axios.post(
-          'http://localhost:8000/api/v1/users/refresh-token',
+          `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api/v1'}/users/refresh-token`,
           {},
           { withCredentials: true }
         );
