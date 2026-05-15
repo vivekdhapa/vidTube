@@ -9,16 +9,7 @@ const api = axios.create({
 
 // Response interceptor — retry once after refreshing tokens on 401
 api.interceptors.response.use(
-  (response) => {
-    if (response.data) {
-      let dataStr = JSON.stringify(response.data);
-      if (dataStr.includes('http://res.cloudinary.com')) {
-        dataStr = dataStr.replace(/http:\/\/res\.cloudinary\.com/g, 'https://res.cloudinary.com');
-        response.data = JSON.parse(dataStr);
-      }
-    }
-    return response;
-  },
+  (response) => response,
   async (error) => {
     const original = error.config;
     if (error.response?.status === 401 && !original._retry) {
@@ -42,5 +33,23 @@ api.interceptors.response.use(
     return Promise.reject(error);
   }
 );
+
+api.interceptors.response.use((response) => {
+  const fixUrls = (obj) => {
+    if (typeof obj === 'string') {
+      return obj.replace(/^http:\/\/res\.cloudinary\.com/,
+                        'https://res.cloudinary.com')
+    }
+    if (Array.isArray(obj)) return obj.map(fixUrls)
+    if (obj && typeof obj === 'object') {
+      return Object.fromEntries(
+        Object.entries(obj).map(([k, v]) => [k, fixUrls(v)])
+      )
+    }
+    return obj
+  }
+  response.data = fixUrls(response.data)
+  return response
+})
 
 export default api;

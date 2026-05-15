@@ -134,9 +134,9 @@ function Home() {
       console.log('Error message:', err.message);
       console.log('Error response:', err.response);
       if (err.code === 'ECONNABORTED' || err.message.includes('timeout')) {
-        setError('Server is waking up, please wait a moment and try again...');
+        setError('Server is waking up, please wait and try again in 30 seconds...');
       } else {
-        setError(err.response?.data?.message || err.message);
+        setError(err.response?.data?.message || 'Failed to fetch videos');
       }
     } finally {
       setLoading(false);
