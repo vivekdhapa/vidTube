@@ -4,7 +4,7 @@ const api = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL || 
            'https://vidtube-9e8o.onrender.com/api/v1',
   withCredentials: true,
-  timeout: 60000,
+  timeout: 14000,
 });
 
 // Response interceptor — retry once after refreshing tokens on 401
