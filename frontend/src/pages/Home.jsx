@@ -133,7 +133,11 @@ function Home() {
       console.log('Videos error:', err);
       console.log('Error message:', err.message);
       console.log('Error response:', err.response);
-      setError(err.response?.data?.message || err.message);
+      if (err.code === 'ECONNABORTED' || err.message.includes('timeout')) {
+        setError('Server is waking up, please wait a moment and try again...');
+      } else {
+        setError(err.response?.data?.message || err.message);
+      }
     } finally {
       setLoading(false);
       setLoadingMore(false);
