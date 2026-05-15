@@ -108,6 +108,8 @@ function Home() {
   const [sortBy, setSortBy] = useState('createdAt'); // 'createdAt' or 'views'
   
   const fetchVideos = async (pageNum = 1, sortField = 'createdAt', isAppend = false, query = '') => {
+    console.log('fetchVideos called');
+    console.log('API URL:', import.meta.env.VITE_API_BASE_URL);
     try {
       if (pageNum === 1) setLoading(true);
       else setLoadingMore(true);
@@ -115,6 +117,7 @@ function Home() {
       setError(null);
       const queryParam = query ? `&query=${encodeURIComponent(query)}` : '';
       const res = await api.get(`/videos?page=${pageNum}&limit=12&sortBy=${sortField}&sortType=desc${queryParam}`);
+      console.log('Videos response:', res.data);
       
       const fetchedVideos = res.data?.data?.videos || [];
       const total = res.data?.data?.totalPages || 1;
@@ -127,8 +130,10 @@ function Home() {
       setTotalPages(total);
       
     } catch (err) {
-      console.error('Fetch videos error:', err);
-      setError(err.response?.data?.message || 'Failed to fetch videos');
+      console.log('Videos error:', err);
+      console.log('Error message:', err.message);
+      console.log('Error response:', err.response);
+      setError(err.response?.data?.message || err.message);
     } finally {
       setLoading(false);
       setLoadingMore(false);
