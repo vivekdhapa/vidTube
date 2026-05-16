@@ -1,8 +1,7 @@
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || 
-           'https://vidtube-9e8o.onrender.com/api/v1',
+  baseURL: import.meta.env.VITE_API_BASE_URL || '/api/v1',
   withCredentials: true,
   timeout: 60000,
 });
@@ -16,7 +15,7 @@ api.interceptors.response.use(
       original._retry = true;
       try {
         await axios.post(
-          `${import.meta.env.VITE_API_BASE_URL || 'https://vidtube-9e8o.onrender.com/api/v1'}/users/refresh-token`,
+          `${import.meta.env.VITE_API_BASE_URL || '/api/v1'}/users/refresh-token`,
           {},
           { withCredentials: true }
         );
