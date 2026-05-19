@@ -154,8 +154,12 @@ const loginUser= asyncHandler(async (req,res)=>{
     }
 
     const options={
-        httpOnly:true, //makes cookie non modifieable from the client side
-        secure:process.env.NODE_ENV==="production",
+        // httpOnly:true, //makes cookie non modifieable from the client side
+        // secure:process.env.NODE_ENV==="production",
+        httpOnly: true,
+        secure: true,
+        sameSite: 'none',
+   
     }
     //sending detailed of loggedInUsers
     return res
