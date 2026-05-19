@@ -29,17 +29,25 @@ function App() {
   // If cookie is still valid → refresh user data in store
   // If cookie expired → clear stale auth state
   useEffect(() => {
-    const rehydrate = async () => {
+    const rehydrateAuth = async () => {
       try {
-        const res = await api.get('/users/current-user');
-        setUser(res.data.data);
+        const res = await api.get('/users/current-user')
+        setUser(res.data.data)
       } catch (error) {
-        logout();
+        // ONLY logout if it's not a network/timeout error
+        // A 401 means token expired — don't logout yet,
+        // let the interceptor handle refresh first
+        // Only logout on definitive auth failures
+        if (error.response?.status === 403) {
+          logout()
+        }
+        // For 401, network errors, timeouts — 
+        // do NOT logout, just set authReady
       } finally {
-        setAuthReady(true);
+        setAuthReady(true)
       }
-    };
-    rehydrate();
+    }
+    rehydrateAuth()
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Safety timeout to ensure splash screen doesn't stick

@@ -10,16 +10,22 @@ const api = axios.create({
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
-    const original = error.config;
-    if (error.response?.status === 401 && !original._retry) {
-      original._retry = true;
+    const originalRequest = error.config;
+    if (
+      error.response?.status === 401 &&
+      !originalRequest._retry &&
+      !originalRequest.url.includes('refresh-token') &&
+      !originalRequest.url.includes('login') &&
+      !originalRequest.url.includes('current-user')
+    ) {
+      originalRequest._retry = true;
       try {
         await axios.post(
           `${import.meta.env.VITE_API_BASE_URL || '/api/v1'}/users/refresh-token`,
           {},
           { withCredentials: true }
         );
-        return api(original);
+        return api(originalRequest);
       } catch {
         // Refresh failed — clear auth state (but don't redirect, let callers handle it)
         try {
