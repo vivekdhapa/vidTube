@@ -129,14 +129,18 @@ function Home() {
       }
       setTotalPages(total);
       
-    } catch (err) {
-      console.log('Videos error:', err);
-      console.log('Error message:', err.message);
-      console.log('Error response:', err.response);
-      if (err.code === 'ECONNABORTED' || err.message.includes('timeout')) {
+    } catch (error) {
+      console.log('Full error:', JSON.stringify({
+        message: error.message,
+        code: error.code,
+        status: error.response?.status,
+        data: error.response?.data,
+        headers: error.response?.headers,
+      }))
+      if (error.code === 'ECONNABORTED' || error.message.includes('timeout')) {
         setError('Server is waking up, please wait and try again in 30 seconds...');
       } else {
-        setError(err.response?.data?.message || 'Failed to fetch videos');
+        setError(error.response?.data?.message || 'Failed to fetch videos');
       }
     } finally {
       setLoading(false);

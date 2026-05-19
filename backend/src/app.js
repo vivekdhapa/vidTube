@@ -21,6 +21,14 @@ app.use(express.static("public")) //used to serve any static files eg. html css 
 
 app.use(cookieParser())
 
+app.get('/api/v1/test', (req, res) => {
+  res.json({ 
+    message: 'CORS working',
+    origin: req.headers.origin,
+    corsOrigin: process.env.CORS_ORIGIN
+  })
+})
+
 //import routes
 import heathcheckRouter from "./routes/healthcheck.routes.js"
 import userRouter from "./routes/user.routes.js"
