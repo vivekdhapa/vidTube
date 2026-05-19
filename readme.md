@@ -14,6 +14,15 @@ A full-stack video sharing platform built from the ground up — featuring video
 
 ---
 
+## 🌐 Live Demo
+
+- **Frontend (Vercel)**: [vid-tube-nu-fawn.vercel.app](https://vid-tube-nu-fawn.vercel.app)
+- **Backend (Railway)**: [vidtube-backend-production.up.railway.app](https://vidtube-backend-production.up.railway.app)
+
+*(Note: The backend is hosted on Railway. Initial requests may take 30-60 seconds if the server is waking up from sleep. Please be patient!)*
+
+---
+
 ## ✨ Features
 
 - **🔐 Authentication** — Secure JWT-based login & registration with HttpOnly cookies and automatic token refresh
@@ -54,17 +63,23 @@ A full-stack video sharing platform built from the ground up — featuring video
 > *Screenshots will be added after final UI polish.*
 
 ### Home Feed
-![Home Feed](./screenshots/home.png)
+![Home Feed](./image.png)
 
 ### Watch Page
-![Watch Page](./screenshots/watch.png)
+![Watch Page](./image-1.png)
 
 ### Channel Page
-![Channel Page](./screenshots/channel.png)
+![Channel Page](./image-2.png)  
+
+### Subscriptions Page
+![Subscriptions Page](./image-3.png)
+
+### Community Tweets Page
+![Community Tweets Page](./image-4.png)
 
 ---
 
-## 🚀 Getting Started
+## 🚀 Getting Started Locally
 
 ### Prerequisites
 
@@ -95,7 +110,7 @@ A full-stack video sharing platform built from the ground up — featuring video
 
 4. **Set up environment variables**
 
-   Create a `.env` file inside the `backend/` directory (see [Environment Variables](#-environment-variables) below).
+   Create a `.env` file inside the `backend/` directory (see [Environment Variables](#-environment-variables) below) and `.env.local` inside the `frontend/` directory if needed for local API paths.
 
 5. **Start the backend server**
    ```bash
@@ -139,7 +154,7 @@ CLOUDINARY_API_SECRET=your-api-secret
 
 ## 📡 API Reference
 
-Base URL: `http://localhost:8000/api/v1`
+Base URL: `http://localhost:8000/api/v1` *(Locally)* or `https://vidtube-backend-production.up.railway.app/api/v1` *(Production)*
 
 ### Auth / Users — `/users`
 
@@ -209,5 +224,5 @@ Base URL: `http://localhost:8000/api/v1`
 ---
 
 <p align="center">
-  Made with ❤️ and lots of ☕
+  Made with lots of caffeine ☕
 </p>
