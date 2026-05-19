@@ -69,7 +69,15 @@ function Register() {
       
       navigate('/login', { state: { message: 'Account created! Please sign in.' } });
     } catch (err) {
-      setErrorMsg(err.response?.data?.message || 'Failed to create account.');
+      let msg = 'Failed to create account.';
+      if (err.code === 'ECONNABORTED' || err.message?.includes('timeout')) {
+        msg = 'Upload timed out. The image might be too large or your internet is slow.';
+      } else if (err.message === 'Network Error') {
+        msg = 'Network Error. Could not connect to the server.';
+      } else if (err.response?.data?.message) {
+        msg = err.response.data.message;
+      }
+      setErrorMsg(msg);
     } finally {
       setLoading(false);
     }
