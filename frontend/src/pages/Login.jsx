@@ -22,11 +22,19 @@ function Login() {
       setLoading(true);
       setErrorMsg(null);
       
-      const res = await api.post('/users/login', data);
+      const payload = {
+        ...data,
+        email: data.email?.trim().toLowerCase(),
+      };
+      
+      const res = await api.post('/users/login', payload);
       setUser(res.data.data); // The backend returns user inside res.data.data
       navigate('/');
     } catch (err) {
-      setErrorMsg(err.response?.data?.message || 'Invalid credentials or something went wrong.');
+      const fallbackMsg = err.message === 'Network Error' 
+        ? 'Network Error. Your mobile carrier might be blocking the server, try Wi-Fi.' 
+        : 'Invalid credentials or something went wrong.';
+      setErrorMsg(err.response?.data?.message || fallbackMsg);
     } finally {
       setLoading(false);
     }

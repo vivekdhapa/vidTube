@@ -51,9 +51,9 @@ function Register() {
       setErrorMsg(null);
       
       const formData = new FormData();
-      formData.append('fullname', data.fullname);
-      formData.append('username', data.username.toLowerCase());
-      formData.append('email', data.email);
+      formData.append('fullname', data.fullname?.trim());
+      formData.append('username', data.username?.trim().toLowerCase());
+      formData.append('email', data.email?.trim().toLowerCase());
       formData.append('password', data.password);
       
       if (data.avatar && data.avatar[0]) {
